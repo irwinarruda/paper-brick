@@ -1,6 +1,8 @@
 import { JSX, createSignal } from "solid-js";
-import { invoke } from "@tauri-apps/api";
+import { invoke, fs } from "@tauri-apps/api";
 import logo from "./assets/logo.svg";
+import { Select } from "./components/Select";
+import { createLogSignal } from "./utils/createLogSignal";
 
 type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement>;
 
@@ -27,32 +29,49 @@ function Input(props: InputProps) {
 }
 
 function App() {
+  const log = createLogSignal();
   const [input, setInput] = createSignal("");
+  const [select, setSelect] = createSignal("test");
   async function onClick() {
     await invoke("change_wallpaper", { name: input() });
   }
 
+  async function onFs() {
+    const dir = await fs.readDir(".config", {
+      dir: fs.BaseDirectory.Home,
+      recursive: true,
+    });
+    log.send(dir.toString());
+  }
+
   return (
     <div class="flex flex-col py-8 px-8">
+      <h2>{log.view()}</h2>
       <h1 class="text-black text-4xl font-semibold text-center">
         Paper Brick!
       </h1>
-      <div class="flex items-center justify-center pt-6 gap-5">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" class="size-20" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="size-20" alt="Tauri logo" />
-        </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={logo} class="size-20" alt="Solid logo" />
-        </a>
-      </div>
       <div class="w-full pt-8"></div>
+      <Select
+        value={select()}
+        onChange={setSelect}
+        options={[
+          { label: "test", value: "test" },
+          { label: "test1", value: "test1" },
+          { label: "test2", value: "test2" },
+          { label: "test3", value: "test3" },
+          { label: "test4", value: "test4" },
+          { label: "test5", value: "test5" },
+          { label: "test6", value: "test6" },
+          { label: "test7", value: "test7" },
+          { label: "test8", value: "test8" },
+          { label: "test9", value: "test9" },
+        ]}
+      />
       <Input value={input()} onInput={(e) => setInput(e.currentTarget.value)} />
       <p>{input()}</p>
       <div class="w-full pt-8"></div>
       <Button onClick={onClick}>Add wallpaper</Button>
+      <Button onClick={onFs}>Test File System</Button>
     </div>
   );
 }
