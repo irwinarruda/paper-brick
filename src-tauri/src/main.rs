@@ -3,7 +3,7 @@
 
 use tauri::{CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, WindowEvent};
 use tauri_plugin_positioner::{self, Position, WindowExt};
-use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -12,12 +12,9 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn complex() -> f32 {
-  let mut val = 0.;
-  for i in 0..(10000000000 as i64) {
-    val += i as f32;
-  }
-  return val;
+fn change_wallpaper(name: &str) {
+  let path = format!("Users/irwinarruda/Pictures/{}", name.to_string());
+  wallpaper::set_from_path(path.as_str()).unwrap();
 }
 
 fn create_tray_menu() -> SystemTray {
@@ -33,6 +30,8 @@ fn main() {
     .system_tray(create_tray_menu())
     .on_system_tray_event(|app, event| {
       tauri_plugin_positioner::on_tray_event(app, &event);
+      let window = app.get_window("main").unwrap();
+      window.move_window(Position::TrayCenter).unwrap();
       match event {
         SystemTrayEvent::LeftClick { .. } => {
           let window = app.get_window("main").unwrap();
@@ -54,8 +53,10 @@ fn main() {
       }
     })
     .on_window_event(|app| match app.event() {
-      WindowEvent::Focused(focused) => {
-        if !focused {
+      WindowEvent::Focused(_focused) =>
+      {
+        #[cfg(production)]
+        if !_focused {
           let window = app.window();
           if window.is_visible().unwrap() {
             window.hide().unwrap();
@@ -66,13 +67,19 @@ fn main() {
     })
     .setup(|app| {
       let window = app.get_window("main").unwrap();
+      window.move_window(Position::TopRight).unwrap();
       #[cfg(target_os = "macos")]
-      apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, Some(7.0))
-        .expect("Unsupported platform! Only macOS is supported!");
+      apply_vibrancy(
+        &window,
+        NSVisualEffectMaterial::HudWindow,
+        Some(NSVisualEffectState::Active),
+        Some(7.0),
+      )
+      .expect("Unsupported platform! Only macOS is supported!");
       return Ok(());
     })
     .invoke_handler(tauri::generate_handler![greet])
-    .invoke_handler(tauri::generate_handler![complex])
+    .invoke_handler(tauri::generate_handler![change_wallpaper])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
