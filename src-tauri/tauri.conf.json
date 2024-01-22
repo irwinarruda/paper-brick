@@ -12,9 +12,16 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "dialog": {
+        "open": true
+      },
       "fs": {
         "all": true,
-        "scope": ["$HOME/*", "$APPDATA/*"]
+        "scope": ["$HOME/**"]
+      },
+      "protocol": {
+        "asset": true,
+        "assetScope": ["$HOME/**"]
       },
       "shell": {
         "all": false,
@@ -39,10 +46,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 400,
         "resizable": false,
         "title": "paper-brick",
-        "width": 500,
+        "width": 580,
+        "height": 270,
         "visible": false,
         "hiddenTitle": true,
         "decorations": false,

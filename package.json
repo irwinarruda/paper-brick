@@ -15,7 +15,9 @@
     "@tauri-apps/api": "^1.5.2",
     "@zag-js/combobox": "^0.32.1",
     "@zag-js/solid": "^0.32.1",
-    "solid-js": "^1.7.8"
+    "solid-icons": "^1.1.0",
+    "solid-js": "^1.7.8",
+    "tailwind-variants": "^0.1.20"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.8",

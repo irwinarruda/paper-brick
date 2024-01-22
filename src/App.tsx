@@ -1,77 +1,60 @@
-import { JSX, createSignal } from "solid-js";
-import { invoke, fs } from "@tauri-apps/api";
-import logo from "./assets/logo.svg";
-import { Select } from "./components/Select";
-import { createLogSignal } from "./utils/createLogSignal";
-
-type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement>;
-
-function Button(props: ButtonProps) {
-  return (
-    <button
-      {...props}
-      class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
-    >
-      {props.children}
-    </button>
-  );
-}
-
-type InputProps = JSX.InputHTMLAttributes<HTMLInputElement>;
-
-function Input(props: InputProps) {
-  return (
-    <input
-      {...props}
-      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-    />
-  );
-}
+import { createSignal } from "solid-js";
+import { CgMathPlus } from "solid-icons/cg";
+import { fs, dialog, path } from "@tauri-apps/api";
+import { WallpaperFolder } from "./components/WallpaperFolder";
+import { Button } from "./components/Button";
+import { extensions } from "./utils/extensions";
 
 function App() {
-  const log = createLogSignal();
-  const [input, setInput] = createSignal("");
-  const [select, setSelect] = createSignal("test");
-  async function onClick() {
-    await invoke("change_wallpaper", { name: input() });
+  const [images, setImages] = createSignal<string[]>([]);
+
+  async function onAddDir() {
+    const file = await dialog.open({
+      directory: true,
+      multiple: false,
+      title: "Selecione uma pasta",
+      defaultPath: await path.homeDir(),
+      filters: [
+        {
+          name: "Imagens",
+          extensions: extensions.map((i) => i.replace(".", "")),
+        },
+      ],
+    });
+    // await invoke("change_wallpaper", {});
   }
 
   async function onFs() {
-    const dir = await fs.readDir(".config", {
-      dir: fs.BaseDirectory.Home,
-      recursive: true,
-    });
-    log.send(dir.toString());
+    try {
+      const dir = await fs.readDir("Pictures", {
+        dir: fs.BaseDirectory.Home,
+        recursive: false,
+      });
+      let images = [];
+      for (let item of dir) {
+        if (!item.children && extensions.some((i) => item.path.endsWith(i))) {
+          images.push(item.path);
+        }
+      }
+      setImages(images);
+    } catch (err) {}
   }
+  onFs();
 
   return (
-    <div class="flex flex-col py-8 px-8">
-      <h2>{log.view()}</h2>
-      <h1 class="text-black text-4xl font-semibold text-center">
-        Paper Brick!
-      </h1>
-      <div class="w-full pt-8"></div>
-      <Select
-        value={select()}
-        onChange={setSelect}
-        options={[
-          { label: "test", value: "test" },
-          { label: "test1", value: "test1" },
-          { label: "test2", value: "test2" },
-          { label: "test3", value: "test3" },
-          { label: "test4", value: "test4" },
-          { label: "test5", value: "test5" },
-          { label: "test6", value: "test6" },
-          { label: "test7", value: "test7" },
-          { label: "test8", value: "test8" },
-          { label: "test9", value: "test9" },
-        ]}
-      />
-      <Input value={input()} onInput={(e) => setInput(e.currentTarget.value)} />
-      <p>{input()}</p>
-      <div class="w-full pt-8"></div>
-      <Button onClick={onClick}>Add wallpaper</Button>
-      <Button onClick={onFs}>Test File System</Button>
+    <div class="flex flex-col pt-3 pb-5 h-screen overflow-auto">
+      <div class="px-5 text-base text-stone-500 font-light">
+        <div class="flex items-center justify-between">
+          <h1 class="text-lg">Paper Brick</h1>
+          <Button rightIcon={<CgMathPlus />} onClick={onAddDir}>
+            Adicionar pasta
+          </Button>
+        </div>
+        <div class="pt-3" />
+        <WallpaperFolder images={images()} name="Suas Fotos" />
+        <div class="pt-3" />
+        <WallpaperFolder images={[]} name="Cusotmizado" />
+      </div>
     </div>
   );
 }
