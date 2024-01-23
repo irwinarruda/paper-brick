@@ -11,6 +11,7 @@ function App() {
     customPictures,
     currentPicture,
     registerCustomDir,
+    removeCustomDir,
     selectPicture,
     loadBaseDirPictures,
     loadCurrentPicture,
@@ -45,6 +46,8 @@ function App() {
           pictures={customPictures()}
           selected={currentPicture()}
           onImageClick={selectPicture}
+          onRemoveClick={removeCustomDir}
+          hasRemove
         />
       </div>
     </div>

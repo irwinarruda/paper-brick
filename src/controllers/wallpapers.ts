@@ -53,6 +53,13 @@ export function createWallpapers() {
     await setCustomDirByPath(dirPath as string);
   }
 
+  async function removeCustomDir() {
+    setCustomDir(undefined);
+    setCustomImages([]);
+    await storage.delete(StorageKeys.CustomDirPath);
+    await storage.save();
+  }
+
   async function loadCurrentPicture() {
     const currentPicture = await invoke<string>(
       TauriHandlers.GetWallpaper,
@@ -88,6 +95,7 @@ export function createWallpapers() {
     currentPicture,
     selectPicture,
     registerCustomDir,
+    removeCustomDir,
     loadBaseDirPictures,
     loadCurrentPicture,
     loadCustomDirPictures,

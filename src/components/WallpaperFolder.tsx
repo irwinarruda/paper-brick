@@ -1,3 +1,4 @@
+import { IoClose } from "solid-icons/io";
 import { For, Show, createMemo, createSignal } from "solid-js";
 import { tv } from "tailwind-variants";
 import { Picture } from "../entities/Picutre";
@@ -6,7 +7,9 @@ import { WallpaperButton } from "./WallpaperButton";
 const tvWallpaperFolder = tv({
   slots: {
     header: "flex items-center justify-end",
-    title: "text-sm text-black font-medium",
+    title: "text-sm text-black font-medium flex items-center gap-1",
+    remove:
+      "bg-gray-900 text-white rounded-full w-4 h-4 flex items-center justify-center transition-all duration-300",
     showButton: "text-xs ml-auto hover:decoration-current hover:underline",
     imageContainer: "flex flex-row justify-start overflow-hidden w-full gap-3",
     divider: "pt-2",
@@ -17,6 +20,14 @@ const tvWallpaperFolder = tv({
         imageContainer: "flex-wrap",
       },
     },
+    showRemove: {
+      true: {
+        remove: "visible",
+      },
+      false: {
+        remove: "hidden",
+      },
+    },
   },
 });
 
@@ -24,12 +35,17 @@ export type WallpaperFolderProps = {
   name: string;
   pictures: Picture[];
   selected?: Picture;
+  hasRemove?: boolean;
   onImageClick?: (src: Picture) => void;
+  onRemoveClick?: () => void;
 };
 
 export function WallpaperFolder(props: WallpaperFolderProps) {
   const [showAll, setShowAll] = createSignal(false);
-  const css = createMemo(() => tvWallpaperFolder({ showAll: showAll() }));
+  const [showRemove, setShowRemove] = createSignal(false);
+  const css = createMemo(() =>
+    tvWallpaperFolder({ showAll: showAll(), showRemove: showRemove() }),
+  );
 
   const sortedPictures = createMemo(() => {
     const pic: Picture[] = [];
@@ -67,7 +83,26 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
   return (
     <section>
       <div class={css().header()}>
-        <h3 class={css().title()}>{props.name}</h3>
+        <h3
+          class={css().title()}
+          onPointerOver={
+            props.hasRemove ? () => setShowRemove(true) : undefined
+          }
+          onPointerOut={
+            props.hasRemove ? () => setShowRemove(false) : undefined
+          }
+        >
+          {props.name}
+          <Show when={props.hasRemove}>
+            <button
+              class={css().remove()}
+              aria-label="Remover Pasta"
+              onClick={props.onRemoveClick}
+            >
+              <IoClose />
+            </button>
+          </Show>
+        </h3>
         <button class={css().showButton()} onClick={onShow}>
           <Show when={!showAll()}>Mostrar Tudo ({props.pictures.length})</Show>
           <Show when={showAll()}>Mostrar Menos</Show>
