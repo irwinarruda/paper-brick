@@ -8,6 +8,8 @@ const tvButton = tv({
     "h-6 px-2",
     "text-sm text-black font-light",
     "shadow shadow-stone-500",
+    "dark:text-stone-100",
+    "dark:bg-neutral-600 dark:hover:bg-neutral-500 dark:shadow-stone-800",
   ],
 });
 
@@ -17,9 +19,9 @@ export type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 export function Button(props: ButtonProps) {
   return (
-    <button {...props} class={tvButton()}>
+    <button {...props} class={tvButton({ class: props.class })}>
       {props.children}
-      <div class="pl-1" />
+      {props.rightIcon && <div class="pl-1" />}
       {props.rightIcon}
     </button>
   );

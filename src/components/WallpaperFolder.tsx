@@ -7,10 +7,16 @@ import { WallpaperButton } from "./WallpaperButton";
 const tvWallpaperFolder = tv({
   slots: {
     header: "flex items-center justify-end",
-    title: "text-sm text-black font-medium flex items-center gap-1",
+    title: [
+      "text-sm text-black font-normal flex items-center gap-1",
+      "dark:text-neutral-200",
+    ],
     remove:
       "bg-gray-900 text-white rounded-full w-4 h-4 flex items-center justify-center transition-all duration-300",
-    showButton: "text-xs ml-auto hover:decoration-current hover:underline",
+    showButton: [
+      "text-xs text-neutral-600 ml-auto hover:decoration-current hover:underline",
+      "dark:text-neutral-400",
+    ],
     imageContainer: "flex flex-row justify-start overflow-hidden w-full gap-3",
     divider: "pt-2",
   },
@@ -35,7 +41,6 @@ export type WallpaperFolderProps = {
   name: string;
   pictures: Picture[];
   selected?: Picture;
-  hasRemove?: boolean;
   onImageClick?: (src: Picture) => void;
   onRemoveClick?: () => void;
 };
@@ -46,6 +51,7 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
   const css = createMemo(() =>
     tvWallpaperFolder({ showAll: showAll(), showRemove: showRemove() }),
   );
+  const hasRemove = !!props.onRemoveClick;
 
   const sortedPictures = createMemo(() => {
     const pic: Picture[] = [];
@@ -85,15 +91,11 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
       <div class={css().header()}>
         <h3
           class={css().title()}
-          onPointerOver={
-            props.hasRemove ? () => setShowRemove(true) : undefined
-          }
-          onPointerOut={
-            props.hasRemove ? () => setShowRemove(false) : undefined
-          }
+          onPointerOver={hasRemove ? () => setShowRemove(true) : undefined}
+          onPointerOut={hasRemove ? () => setShowRemove(false) : undefined}
         >
           {props.name}
-          <Show when={props.hasRemove}>
+          <Show when={hasRemove}>
             <button
               class={css().remove()}
               aria-label="Remover Pasta"

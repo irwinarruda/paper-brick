@@ -19,8 +19,8 @@ export function createWallpapers() {
   const customDirName = createMemo(() => customDir()?.name || "Customizado");
 
   async function selectPicture(picture: Picture) {
-    setCurrentPicture(picture);
     try {
+      setCurrentPicture(picture);
       await invoke(TauriHandlers.SetWallpaper, { path: picture.path });
     } catch (err) {
       error(err);
@@ -28,43 +28,59 @@ export function createWallpapers() {
   }
 
   async function setCustomDirByPath(dirPath: string) {
-    setCustomDir(toPicture(dirPath));
-    const dir = await fs.readDir(dirPath as string, {
-      recursive: true,
-    });
-    setCustomImages(getPicturesFromDir(dir));
-    await storage.set(StorageKeys.CustomDirPath, dirPath);
-    await storage.save();
+    try {
+      setCustomDir(toPicture(dirPath));
+      const dir = await fs.readDir(dirPath as string, {
+        recursive: true,
+      });
+      setCustomImages(getPicturesFromDir(dir));
+      await storage.set(StorageKeys.CustomDirPath, dirPath);
+      await storage.save();
+    } catch (err) {
+      error(err);
+    }
   }
 
   async function registerCustomDir() {
-    const dirPath = await dialog.open({
-      directory: true,
-      multiple: false,
-      title: "Selecione uma pasta",
-      defaultPath: await path.homeDir(),
-      filters: [
-        {
-          name: "Imagens",
-          extensions: extensions.map((i) => i.replace(".", "")),
-        },
-      ],
-    });
-    await setCustomDirByPath(dirPath as string);
+    try {
+      const dirPath = await dialog.open({
+        directory: true,
+        multiple: false,
+        title: "Selecione uma pasta",
+        defaultPath: await path.homeDir(),
+        filters: [
+          {
+            name: "Imagens",
+            extensions: extensions.map((i) => i.replace(".", "")),
+          },
+        ],
+      });
+      await setCustomDirByPath(dirPath as string);
+    } catch (err) {
+      error(err);
+    }
   }
 
   async function removeCustomDir() {
-    setCustomDir(undefined);
-    setCustomImages([]);
-    await storage.delete(StorageKeys.CustomDirPath);
-    await storage.save();
+    try {
+      setCustomDir(undefined);
+      setCustomImages([]);
+      await storage.delete(StorageKeys.CustomDirPath);
+      await storage.save();
+    } catch (err) {
+      error(err);
+    }
   }
 
   async function loadCurrentPicture() {
-    const currentPicture = await invoke<string>(
-      TauriHandlers.GetWallpaper,
-    ).then((p) => toPicture(p));
-    setCurrentPicture(currentPicture);
+    try {
+      const currentPicture = await invoke<string | undefined>(
+        TauriHandlers.GetWallpaper,
+      ).then((p) => (p ? toPicture(p) : undefined));
+      setCurrentPicture(currentPicture);
+    } catch (err) {
+      error(err);
+    }
   }
 
   async function loadBaseDirPictures() {
@@ -81,9 +97,13 @@ export function createWallpapers() {
   }
 
   async function loadCustomDirPictures() {
-    const path = await storage.get<string>(StorageKeys.CustomDirPath);
-    if (!!path) {
-      await setCustomDirByPath(path);
+    try {
+      const path = await storage.get<string>(StorageKeys.CustomDirPath);
+      if (!!path) {
+        await setCustomDirByPath(path);
+      }
+    } catch (err) {
+      error(err);
     }
   }
 

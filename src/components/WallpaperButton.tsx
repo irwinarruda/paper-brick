@@ -13,6 +13,7 @@ const tvWallpaperButton = tv({
         button: [
           "ring-[0.16rem] ring-inset ring-blue-500",
           "outline outline-white outline-1 -outline-offset-[0.185rem]",
+          "dark:outline-black",
         ],
       },
     },

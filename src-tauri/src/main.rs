@@ -7,13 +7,16 @@ use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectStat
 
 #[tauri::command]
 fn set_wallpaper(path: &str) {
-  wallpaper::set_from_path(path).unwrap();
+  wallpaper::set_from_path(path).unwrap_or(());
 }
 
 #[tauri::command]
-fn get_wallpaper() -> String {
-  let current_path = wallpaper::get().unwrap();
-  return current_path;
+fn get_wallpaper() -> Option<String> {
+  let result = wallpaper::get();
+  if let Ok(path) = result {
+    return Some(path);
+  }
+  return None;
 }
 
 fn create_tray_menu() -> SystemTray {

@@ -25,31 +25,30 @@ function App() {
   });
 
   return (
-    <div class="flex flex-col pt-3 pb-5 h-screen overflow-auto">
-      <div class="px-5 text-base text-stone-500 font-light">
-        <div class="flex items-center justify-between">
-          <h1 class="text-lg">Paper Brick</h1>
-          <Button rightIcon={<CgMathPlus />} onClick={registerCustomDir}>
-            Adicionar pasta
-          </Button>
-        </div>
-        <div class="pt-3" />
-        <WallpaperFolder
-          name="Suas Fotos"
-          pictures={pictures()}
-          selected={currentPicture()}
-          onImageClick={selectPicture}
-        />
-        <div class="pt-3" />
-        <WallpaperFolder
-          name={customDirName()}
-          pictures={customPictures()}
-          selected={currentPicture()}
-          onImageClick={selectPicture}
-          onRemoveClick={removeCustomDir}
-          hasRemove
-        />
+    <div class="flex flex-col pt-3 pb-5 px-5 h-screen overflow-auto">
+      <div class="flex items-center justify-between">
+        <h1 class="text-lg text-black font-light dark:text-neutral-100">
+          Paper Brick
+        </h1>
+        <Button rightIcon={<CgMathPlus />} onClick={registerCustomDir}>
+          Adicionar pasta
+        </Button>
       </div>
+      <div class="pt-3" />
+      <WallpaperFolder
+        name="Suas Fotos"
+        pictures={pictures()}
+        selected={currentPicture()}
+        onImageClick={selectPicture}
+      />
+      <div class="pt-3" />
+      <WallpaperFolder
+        name={customDirName()}
+        pictures={customPictures()}
+        selected={currentPicture()}
+        onImageClick={selectPicture}
+        onRemoveClick={removeCustomDir}
+      />
     </div>
   );
 }
