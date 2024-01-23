@@ -1,59 +1,51 @@
-import { createSignal } from "solid-js";
 import { CgMathPlus } from "solid-icons/cg";
-import { fs, dialog, path } from "@tauri-apps/api";
-import { WallpaperFolder } from "./components/WallpaperFolder";
+import { createEffect } from "solid-js";
 import { Button } from "./components/Button";
-import { extensions } from "./utils/extensions";
+import { WallpaperFolder } from "./components/WallpaperFolder";
+import { createWallpapers } from "./controllers/wallpapers";
 
 function App() {
-  const [images, setImages] = createSignal<string[]>([]);
+  const {
+    pictures,
+    customDirName,
+    customPictures,
+    currentPicture,
+    registerCustomDir,
+    selectPicture,
+    loadBaseDirPictures,
+    loadCurrentPicture,
+    loadCustomDirPictures,
+  } = createWallpapers();
 
-  async function onAddDir() {
-    const file = await dialog.open({
-      directory: true,
-      multiple: false,
-      title: "Selecione uma pasta",
-      defaultPath: await path.homeDir(),
-      filters: [
-        {
-          name: "Imagens",
-          extensions: extensions.map((i) => i.replace(".", "")),
-        },
-      ],
-    });
-    // await invoke("change_wallpaper", {});
-  }
-
-  async function onFs() {
-    try {
-      const dir = await fs.readDir("Pictures", {
-        dir: fs.BaseDirectory.Home,
-        recursive: false,
-      });
-      let images = [];
-      for (let item of dir) {
-        if (!item.children && extensions.some((i) => item.path.endsWith(i))) {
-          images.push(item.path);
-        }
-      }
-      setImages(images);
-    } catch (err) {}
-  }
-  onFs();
+  createEffect(() => {
+    loadBaseDirPictures();
+    loadCurrentPicture();
+    loadCustomDirPictures();
+  });
 
   return (
     <div class="flex flex-col pt-3 pb-5 h-screen overflow-auto">
       <div class="px-5 text-base text-stone-500 font-light">
         <div class="flex items-center justify-between">
           <h1 class="text-lg">Paper Brick</h1>
-          <Button rightIcon={<CgMathPlus />} onClick={onAddDir}>
+          <Button rightIcon={<CgMathPlus />} onClick={registerCustomDir}>
             Adicionar pasta
           </Button>
         </div>
         <div class="pt-3" />
-        <WallpaperFolder images={images()} name="Suas Fotos" />
+        <WallpaperFolder
+          name="Suas Fotos"
+          pictures={pictures()}
+          selected={currentPicture()}
+          onImageClick={selectPicture}
+        />
         <div class="pt-3" />
-        <WallpaperFolder images={[]} name="Cusotmizado" />
+        <WallpaperFolder
+          name={customDirName()}
+          pictures={customPictures()}
+          selected={currentPicture()}
+          onImageClick={selectPicture}
+        />
       </div>
     </div>
   );

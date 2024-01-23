@@ -5,16 +5,15 @@ use tauri::{CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu
 use tauri_plugin_positioner::{self, Position, WindowExt};
 use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn greet(name: &str) -> String {
-  format!("Hello, {}! You've been greeted from Rust!", name)
+fn set_wallpaper(path: &str) {
+  wallpaper::set_from_path(path).unwrap();
 }
 
 #[tauri::command]
-fn change_wallpaper(name: &str) {
-  let path = format!("Users/irwinarruda/Pictures/{}", name.to_string());
-  wallpaper::set_from_path(path.as_str()).unwrap();
+fn get_wallpaper() -> String {
+  let current_path = wallpaper::get().unwrap();
+  return current_path;
 }
 
 fn create_tray_menu() -> SystemTray {
@@ -27,6 +26,7 @@ fn create_tray_menu() -> SystemTray {
 fn main() {
   tauri::Builder::default()
     .plugin(tauri_plugin_positioner::init())
+    .plugin(tauri_plugin_store::Builder::default().build())
     .system_tray(create_tray_menu())
     .on_system_tray_event(|app, event| {
       tauri_plugin_positioner::on_tray_event(app, &event);
@@ -78,8 +78,7 @@ fn main() {
       .expect("Unsupported platform! Only macOS is supported!");
       return Ok(());
     })
-    .invoke_handler(tauri::generate_handler![greet])
-    .invoke_handler(tauri::generate_handler![change_wallpaper])
+    .invoke_handler(tauri::generate_handler![set_wallpaper, get_wallpaper])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

@@ -1,6 +1,6 @@
-import { tauri } from "@tauri-apps/api";
 import { For, Show, createMemo, createSignal } from "solid-js";
 import { tv } from "tailwind-variants";
+import { Picture } from "../entities/Picutre";
 import { WallpaperButton } from "./WallpaperButton";
 
 const tvWallpaperFolder = tv({
@@ -22,24 +22,46 @@ const tvWallpaperFolder = tv({
 
 export type WallpaperFolderProps = {
   name: string;
-  images: string[];
-  onImageClick?: (src: string) => void;
-  onShowAllClick?: () => void;
+  pictures: Picture[];
+  selected?: Picture;
+  onImageClick?: (src: Picture) => void;
 };
 
 export function WallpaperFolder(props: WallpaperFolderProps) {
   const [showAll, setShowAll] = createSignal(false);
   const css = createMemo(() => tvWallpaperFolder({ showAll: showAll() }));
 
+  const sortedPictures = createMemo(() => {
+    const pic: Picture[] = [];
+    let hasSelected = false;
+    for (const i in props.pictures) {
+      if (props.pictures[i].path === props.selected?.path && Number(i) > 4) {
+        pic.push(props.pictures[i]);
+        hasSelected = true;
+      }
+    }
+    for (const p of props.pictures) {
+      if (p.path !== props.selected?.path || !hasSelected) pic.push(p);
+    }
+    return pic;
+  });
+
   function onShow() {
-    if (props.images.length === 0) return;
+    if (props.pictures.length === 0) return;
     setShowAll((p) => !p);
   }
 
-  function onImage(src: string) {
+  function onImage(picture: Picture) {
     if (props.onImageClick) {
-      props.onImageClick(src);
+      props.onImageClick(picture);
     }
+  }
+
+  function onSelected(picture: Picture) {
+    if (props.selected) {
+      return props.selected.path === picture.path;
+    }
+    return false;
   }
 
   return (
@@ -47,24 +69,25 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
       <div class={css().header()}>
         <h3 class={css().title()}>{props.name}</h3>
         <button class={css().showButton()} onClick={onShow}>
-          <Show when={!showAll()}>Mostrar Tudo ({props.images.length})</Show>
+          <Show when={!showAll()}>Mostrar Tudo ({props.pictures.length})</Show>
           <Show when={showAll()}>Mostrar Menos</Show>
         </button>
       </div>
       <div class={css().divider()} />
       <div class={css().imageContainer()}>
-        <Show when={props.images.length > 0}>
-          <For each={props.images}>
+        <Show when={props.pictures.length > 0}>
+          <For each={sortedPictures()}>
             {(img) => (
               <WallpaperButton
-                src={tauri.convertFileSrc(img)}
-                alt={`Wallpaper ${img}`}
+                src={img.src}
+                alt={`Wallpaper ${img.name}`}
+                selected={onSelected(img)}
                 onImageClick={() => onImage(img)}
               />
             )}
           </For>
         </Show>
-        <Show when={props.images.length === 0}>
+        <Show when={props.pictures.length === 0}>
           <For each={Array.from({ length: 4 })}>
             {() => <WallpaperButton alt="Sem Wallpaper" />}
           </For>

@@ -1,3 +1,4 @@
+import { createMemo } from "solid-js";
 import { tv } from "tailwind-variants";
 import Placeholder from "../assets/placeholder.png";
 
@@ -27,11 +28,11 @@ export type WallPaperButtonProps = {
 };
 
 export function WallpaperButton(props: WallPaperButtonProps) {
-  const css = tvWallpaperButton({ selected: props.selected });
+  const css = createMemo(() => tvWallpaperButton({ selected: props.selected }));
   return (
-    <div class={css.root()}>
+    <div class={css().root()}>
       <button
-        class={css.button()}
+        class={css().button()}
         onClick={props.onImageClick}
         aria-label={props.alt}
         style={{
