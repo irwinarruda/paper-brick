@@ -1,7 +1,9 @@
 import { CgMathPlus } from "solid-icons/cg";
 import { createEffect } from "solid-js";
+import Logo from "./assets/logo.png";
 import { Button } from "./components/Button";
 import { WallpaperFolder } from "./components/WallpaperFolder";
+import { createLocale } from "./controllers/locale";
 import { createWallpapers } from "./controllers/wallpapers";
 
 function App() {
@@ -17,6 +19,7 @@ function App() {
     loadCurrentPicture,
     loadCustomDirPictures,
   } = createWallpapers();
+  const { t } = createLocale();
 
   createEffect(() => {
     loadBaseDirPictures();
@@ -27,16 +30,16 @@ function App() {
   return (
     <div class="flex flex-col pt-3 pb-5 px-5 h-screen overflow-auto">
       <div class="flex items-center justify-between">
-        <h1 class="text-lg text-black font-light dark:text-neutral-100">
-          Paper Brick
+        <h1 class="flex items-center text-lg text-black font-light dark:text-neutral-100">
+          <img src={Logo} class="size-6" /> <div class="pl-1" /> {t("title")}
         </h1>
         <Button rightIcon={<CgMathPlus />} onClick={registerCustomDir}>
-          Adicionar pasta
+          {t("addDir")!}
         </Button>
       </div>
       <div class="pt-3" />
       <WallpaperFolder
-        name="Suas Fotos"
+        name={t("mainPicTitle")!}
         pictures={pictures()}
         selected={currentPicture()}
         onImageClick={selectPicture}
@@ -48,6 +51,7 @@ function App() {
         selected={currentPicture()}
         onImageClick={selectPicture}
         onRemoveClick={removeCustomDir}
+        isPlaceholder={customPictures().length === 0}
       />
     </div>
   );

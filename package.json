@@ -12,6 +12,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@solid-primitives/i18n": "^2.0.1",
     "@tauri-apps/api": "^1.5.2",
     "@zag-js/combobox": "^0.32.1",
     "@zag-js/solid": "^0.32.1",

@@ -1,7 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, WindowEvent};
+use tauri::{
+  ActivationPolicy, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
+  WindowEvent,
+};
 use tauri_plugin_positioner::{self, Position, WindowExt};
 use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
 
@@ -46,6 +49,12 @@ fn main() {
             window.set_focus().unwrap();
           }
         }
+        SystemTrayEvent::RightClick { .. } => {
+          let window = app.get_window("main").unwrap();
+          if window.is_visible().unwrap() {
+            window.hide().unwrap();
+          }
+        }
         SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
           "quit" => {
             std::process::exit(0);
@@ -69,6 +78,7 @@ fn main() {
       _ => (),
     })
     .setup(|app| {
+      app.set_activation_policy(ActivationPolicy::Accessory);
       let window = app.get_window("main").unwrap();
       window.move_window(Position::TopRight).unwrap();
       #[cfg(target_os = "macos")]

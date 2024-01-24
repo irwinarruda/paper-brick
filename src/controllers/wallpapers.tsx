@@ -7,6 +7,7 @@ import { extensions } from "../utils/extensions";
 import { getPicturesFromDir } from "../utils/getPicturesFromDir";
 import { StorageKeys, storage } from "../utils/storage";
 import { toPicture } from "../utils/toPicture";
+import { createLocale } from "./locale";
 
 export function createWallpapers() {
   const [pictures, setPictures] = createSignal<Picture[]>([]);
@@ -15,8 +16,11 @@ export function createWallpapers() {
   >();
   const [customDir, setCustomDir] = createSignal<Picture | undefined>();
   const [customPictures, setCustomImages] = createSignal<Picture[]>([]);
+  const { t } = createLocale();
 
-  const customDirName = createMemo(() => customDir()?.name || "Customizado");
+  const customDirName = createMemo(
+    () => customDir()?.name || t("defaultCustomDir")!,
+  );
 
   async function selectPicture(picture: Picture) {
     try {
@@ -46,15 +50,16 @@ export function createWallpapers() {
       const dirPath = await dialog.open({
         directory: true,
         multiple: false,
-        title: "Selecione uma pasta",
+        title: t("dialogTitle"),
         defaultPath: await path.homeDir(),
         filters: [
           {
-            name: "Imagens",
+            name: "Images",
             extensions: extensions.map((i) => i.replace(".", "")),
           },
         ],
       });
+      if (!dirPath) return;
       await setCustomDirByPath(dirPath as string);
     } catch (err) {
       error(err);

@@ -12,6 +12,9 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "os": {
+        "all": true
+      },
       "dialog": {
         "open": true
       },
@@ -61,7 +64,7 @@
     ],
     "macOSPrivateApi": true,
     "systemTray": {
-      "iconPath": "icons/icon.png",
+      "iconPath": "tray/icon-tray.png",
       "iconAsTemplate": true,
       "menuOnLeftClick": false
     }

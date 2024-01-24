@@ -1,6 +1,7 @@
 import { IoClose } from "solid-icons/io";
 import { For, Show, createMemo, createSignal } from "solid-js";
 import { tv } from "tailwind-variants";
+import { createLocale } from "../controllers/locale";
 import { Picture } from "../entities/Picutre";
 import { WallpaperButton } from "./WallpaperButton";
 
@@ -43,11 +44,13 @@ export type WallpaperFolderProps = {
   selected?: Picture;
   onImageClick?: (src: Picture) => void;
   onRemoveClick?: () => void;
+  isPlaceholder?: boolean;
 };
 
 export function WallpaperFolder(props: WallpaperFolderProps) {
   const [showAll, setShowAll] = createSignal(false);
   const [showRemove, setShowRemove] = createSignal(false);
+  const { t } = createLocale();
   const css = createMemo(() =>
     tvWallpaperFolder({ showAll: showAll(), showRemove: showRemove() }),
   );
@@ -98,7 +101,7 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
           <Show when={hasRemove}>
             <button
               class={css().remove()}
-              aria-label="Remover Pasta"
+              aria-label={t("removeDir")}
               onClick={props.onRemoveClick}
             >
               <IoClose />
@@ -106,27 +109,31 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
           </Show>
         </h3>
         <button class={css().showButton()} onClick={onShow}>
-          <Show when={!showAll()}>Mostrar Tudo ({props.pictures.length})</Show>
-          <Show when={showAll()}>Mostrar Menos</Show>
+          <Show when={!showAll()}>
+            {t("showMorePic", props.pictures.length)}
+          </Show>
+          <Show when={showAll()}>
+            {t("showLessPic", props.pictures.length)}
+          </Show>
         </button>
       </div>
       <div class={css().divider()} />
       <div class={css().imageContainer()}>
-        <Show when={props.pictures.length > 0}>
+        <Show when={!props.isPlaceholder}>
           <For each={sortedPictures()}>
             {(img) => (
               <WallpaperButton
                 src={img.src}
-                alt={`Wallpaper ${img.name}`}
+                alt={t("picLabel", img.name)}
                 selected={onSelected(img)}
                 onImageClick={() => onImage(img)}
               />
             )}
           </For>
         </Show>
-        <Show when={props.pictures.length === 0}>
+        <Show when={props.isPlaceholder}>
           <For each={Array.from({ length: 4 })}>
-            {() => <WallpaperButton alt="Sem Wallpaper" />}
+            {() => <WallpaperButton alt={t("noPicLabel")} />}
           </For>
         </Show>
       </div>
