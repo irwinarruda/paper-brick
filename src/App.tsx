@@ -1,5 +1,5 @@
 import { CgMathPlus } from "solid-icons/cg";
-import { createEffect } from "solid-js";
+import { window } from "@tauri-apps/api";
 import Logo from "./assets/logo.png";
 import { Button } from "./components/Button";
 import { WallpaperFolder } from "./components/WallpaperFolder";
@@ -21,11 +21,14 @@ function App() {
   } = createWallpapers();
   const { t } = createLocale();
 
-  createEffect(() => {
+  window.appWindow.listen("tauri://focus", () => {
     loadBaseDirPictures();
     loadCurrentPicture();
     loadCustomDirPictures();
   });
+  loadBaseDirPictures();
+  loadCurrentPicture();
+  loadCustomDirPictures();
 
   return (
     <div class="flex flex-col pt-3 pb-5 px-5 h-screen overflow-auto">
