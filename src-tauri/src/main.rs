@@ -65,9 +65,7 @@ fn main() {
       }
     })
     .on_window_event(|app| match app.event() {
-      WindowEvent::Focused(_focused) =>
-      {
-        #[cfg(production)]
+      WindowEvent::Focused(_focused) => {
         if !_focused {
           let window = app.window();
           if window.is_visible().unwrap() {
