@@ -13,7 +13,7 @@ const tvWallpaperFolder = tv({
       "dark:text-neutral-200",
     ],
     remove:
-      "bg-gray-900 text-white rounded-full w-4 h-4 flex items-center justify-center transition-all duration-300",
+      "bg-gray-800 text-white rounded-full w-4 h-4 flex items-center justify-center transition-all duration-300",
     showButton: [
       "text-xs text-neutral-600 ml-auto hover:decoration-current hover:underline",
       "dark:text-neutral-400",
@@ -44,6 +44,7 @@ export type WallpaperFolderProps = {
   selected?: Picture;
   onImageClick?: (src: Picture) => void;
   onRemoveClick?: () => void;
+  hasRemove?: boolean;
   isPlaceholder?: boolean;
 };
 
@@ -52,9 +53,11 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
   const [showRemove, setShowRemove] = createSignal(false);
   const { t } = createLocale();
   const css = createMemo(() =>
-    tvWallpaperFolder({ showAll: showAll(), showRemove: showRemove() }),
+    tvWallpaperFolder({
+      showAll: showAll(),
+      showRemove: props.hasRemove && showRemove(),
+    }),
   );
-  const hasRemove = !!props.onRemoveClick;
 
   const sortedPictures = createMemo(() => {
     const pic: Picture[] = [];
@@ -94,19 +97,17 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
       <div class={css().header()}>
         <h3
           class={css().title()}
-          onPointerOver={hasRemove ? () => setShowRemove(true) : undefined}
-          onPointerOut={hasRemove ? () => setShowRemove(false) : undefined}
+          onPointerOver={() => setShowRemove(true)}
+          onPointerOut={() => setShowRemove(false)}
         >
           {props.name}
-          <Show when={hasRemove}>
-            <button
-              class={css().remove()}
-              aria-label={t("removeDir")}
-              onClick={props.onRemoveClick}
-            >
-              <IoClose />
-            </button>
-          </Show>
+          <button
+            class={css().remove()}
+            aria-label={t("removeDir")}
+            onClick={props.onRemoveClick}
+          >
+            <IoClose />
+          </button>
         </h3>
         <button class={css().showButton()} onClick={onShow}>
           <Show when={!showAll()}>

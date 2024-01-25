@@ -52,7 +52,7 @@
         "resizable": false,
         "title": "paper-brick",
         "width": 580,
-        "height": 270,
+        "height": 165,
         "visible": false,
         "hiddenTitle": true,
         "decorations": false,

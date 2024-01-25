@@ -8,6 +8,15 @@ use tauri::{
 use tauri_plugin_positioner::{self, Position, WindowExt};
 use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
 
+static mut IS_DIALOG_OPEN: bool = false;
+
+#[tauri::command]
+fn set_dialog_open() {
+  unsafe {
+    IS_DIALOG_OPEN = true;
+  }
+}
+
 #[tauri::command]
 fn set_wallpaper(path: &str) {
   wallpaper::set_from_path(path).unwrap_or(());
@@ -67,9 +76,15 @@ fn main() {
     .on_window_event(|app| match app.event() {
       WindowEvent::Focused(_focused) => {
         if !_focused {
-          let window = app.window();
-          if window.is_visible().unwrap() {
-            window.hide().unwrap();
+          unsafe {
+            if IS_DIALOG_OPEN {
+              IS_DIALOG_OPEN = false;
+              return;
+            }
+            let window = app.window();
+            if window.is_visible().unwrap() {
+              window.hide().unwrap();
+            }
           }
         }
       }
@@ -89,7 +104,11 @@ fn main() {
       .expect("Unsupported platform! Only macOS is supported!");
       return Ok(());
     })
-    .invoke_handler(tauri::generate_handler![set_wallpaper, get_wallpaper])
+    .invoke_handler(tauri::generate_handler![
+      set_wallpaper,
+      get_wallpaper,
+      set_dialog_open
+    ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

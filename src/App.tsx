@@ -1,5 +1,5 @@
-import { CgMathPlus } from "solid-icons/cg";
 import { window } from "@tauri-apps/api";
+import { CgMathPlus } from "solid-icons/cg";
 import Logo from "./assets/logo.png";
 import { Button } from "./components/Button";
 import { WallpaperFolder } from "./components/WallpaperFolder";
@@ -9,26 +9,27 @@ import { createWallpapers } from "./controllers/wallpapers";
 function App() {
   const {
     pictures,
+    customDir,
     customDirName,
-    customPictures,
     currentPicture,
     registerCustomDir,
     removeCustomDir,
     selectPicture,
-    loadBaseDirPictures,
     loadCurrentPicture,
     loadCustomDirPictures,
   } = createWallpapers();
   const { t } = createLocale();
 
   window.appWindow.listen("tauri://focus", () => {
-    loadBaseDirPictures();
-    loadCurrentPicture();
-    loadCustomDirPictures();
+    window.appWindow.isFocused().then((isFocused) => {
+      if (isFocused) {
+        loadCustomDirPictures();
+        loadCurrentPicture();
+      }
+    });
   });
-  loadBaseDirPictures();
-  loadCurrentPicture();
   loadCustomDirPictures();
+  loadCurrentPicture();
 
   return (
     <div class="flex flex-col pt-3 pb-5 px-5 h-screen overflow-auto">
@@ -42,19 +43,13 @@ function App() {
       </div>
       <div class="pt-3" />
       <WallpaperFolder
-        name={t("mainPicTitle")!}
+        name={customDirName()}
         pictures={pictures()}
         selected={currentPicture()}
         onImageClick={selectPicture}
-      />
-      <div class="pt-3" />
-      <WallpaperFolder
-        name={customDirName()}
-        pictures={customPictures()}
-        selected={currentPicture()}
-        onImageClick={selectPicture}
         onRemoveClick={removeCustomDir}
-        isPlaceholder={customPictures().length === 0}
+        hasRemove={!!customDir()}
+        isPlaceholder={pictures().length === 0}
       />
     </div>
   );
