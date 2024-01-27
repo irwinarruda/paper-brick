@@ -1,4 +1,4 @@
-import { dialog, fs, invoke, path } from "@tauri-apps/api";
+import { dialog, fs, invoke, path, window } from "@tauri-apps/api";
 import { createMemo, createSignal } from "solid-js";
 import { Picture } from "../entities/Picutre";
 import { TauriHandlers } from "../entities/TauriHandlers";
@@ -95,6 +95,19 @@ export function createWallpapers() {
     }
   }
 
+  async function onShowMore(isShowingMore: boolean) {
+    if (isShowingMore) {
+      window.appWindow.setSize(
+        new window.LogicalSize(
+          580,
+          165 + (64 + 12) * (Math.ceil(pictures().length / 4) - 1),
+        ),
+      );
+      return;
+    }
+    window.appWindow.setSize(new window.LogicalSize(580, 165));
+  }
+
   return {
     pictures,
     customDir,
@@ -105,5 +118,6 @@ export function createWallpapers() {
     removeCustomDir,
     loadCurrentPicture,
     loadCustomDirPictures,
+    onShowMore,
   };
 }

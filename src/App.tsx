@@ -17,6 +17,7 @@ function App() {
     selectPicture,
     loadCurrentPicture,
     loadCustomDirPictures,
+    onShowMore,
   } = createWallpapers();
   const { t } = createLocale();
 
@@ -32,7 +33,7 @@ function App() {
   loadCurrentPicture();
 
   return (
-    <div class="flex flex-col pt-3 pb-5 px-5 h-screen overflow-auto">
+    <div class="flex flex-col pt-3 pb-5 px-5 h-screen overflow-hidden">
       <div class="flex items-center justify-between">
         <h1 class="flex items-center text-lg text-black font-light dark:text-neutral-100">
           <img src={Logo} class="size-6" /> <div class="pl-1" /> {t("title")}
@@ -48,6 +49,7 @@ function App() {
         selected={currentPicture()}
         onImageClick={selectPicture}
         onRemoveClick={removeCustomDir}
+        onShowMore={onShowMore}
         hasRemove={!!customDir()}
         isPlaceholder={pictures().length === 0}
       />

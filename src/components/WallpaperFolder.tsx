@@ -44,6 +44,7 @@ export type WallpaperFolderProps = {
   selected?: Picture;
   onImageClick?: (src: Picture) => void;
   onRemoveClick?: () => void;
+  onShowMore?: (isShowing: boolean) => void;
   hasRemove?: boolean;
   isPlaceholder?: boolean;
 };
@@ -76,7 +77,8 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
 
   function onShow() {
     if (props.pictures.length === 0) return;
-    setShowAll((p) => !p);
+    if (!props.onShowMore) return;
+    props.onShowMore(setShowAll((p) => !p));
   }
 
   function onImage(picture: Picture) {
