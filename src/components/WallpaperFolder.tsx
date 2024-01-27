@@ -60,21 +60,6 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
     }),
   );
 
-  const sortedPictures = createMemo(() => {
-    const pic: Picture[] = [];
-    let hasSelected = false;
-    for (const i in props.pictures) {
-      if (props.pictures[i].path === props.selected?.path && Number(i) > 4) {
-        pic.push(props.pictures[i]);
-        hasSelected = true;
-      }
-    }
-    for (const p of props.pictures) {
-      if (p.path !== props.selected?.path || !hasSelected) pic.push(p);
-    }
-    return pic;
-  });
-
   function onShow() {
     if (props.pictures.length === 0) return;
     if (!props.onShowMore) return;
@@ -125,7 +110,7 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
       <div class={css().divider()} />
       <div class={css().imageContainer()}>
         <Show when={!props.isPlaceholder}>
-          <For each={sortedPictures()}>
+          <For each={props.pictures}>
             {(img) => (
               <WallpaperButton
                 src={img.src}
