@@ -7,7 +7,8 @@ pub fn get() -> Option<String> {
     .output();
   if let Ok(output) = result {
     let result = String::from_utf8(output.stdout);
-    if let Ok(path) = result {
+    if let Ok(mut path) = result {
+      path.pop();
       return Some(path);
     }
   }
