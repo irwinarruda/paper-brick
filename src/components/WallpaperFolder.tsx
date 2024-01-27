@@ -7,7 +7,7 @@ import { WallpaperButton } from "./WallpaperButton";
 
 const tvWallpaperFolder = tv({
   slots: {
-    header: "flex items-center justify-end",
+    header: "flex items-center justify-start",
     title: [
       "text-sm text-black font-normal flex items-center gap-1",
       "dark:text-neutral-200",
@@ -111,14 +111,16 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
             <IoClose />
           </button>
         </h3>
-        <button class={css().showButton()} onClick={onShow}>
-          <Show when={!showAll()}>
-            {t("showMorePic", props.pictures.length)}
-          </Show>
-          <Show when={showAll()}>
-            {t("showLessPic", props.pictures.length)}
-          </Show>
-        </button>
+        <Show when={props.pictures.length > 4}>
+          <button class={css().showButton()} onClick={onShow}>
+            <Show when={!showAll()}>
+              {t("showMorePic", props.pictures.length)}
+            </Show>
+            <Show when={showAll()}>
+              {t("showLessPic", props.pictures.length)}
+            </Show>
+          </button>
+        </Show>
       </div>
       <div class={css().divider()} />
       <div class={css().imageContainer()}>
