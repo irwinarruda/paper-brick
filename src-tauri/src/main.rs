@@ -1,6 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+pub mod wallpaper;
+
 use tauri::{
   ActivationPolicy, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
   WindowEvent,
@@ -19,13 +21,13 @@ fn set_dialog_open() {
 
 #[tauri::command]
 fn set_wallpaper(path: &str) {
-  wallpaper::set_from_path(path).unwrap_or(());
+  wallpaper::set(path.to_string());
 }
 
 #[tauri::command]
 fn get_wallpaper() -> Option<String> {
   let result = wallpaper::get();
-  if let Ok(path) = result {
+  if let Some(path) = result {
     return Some(path);
   }
   return None;
@@ -41,7 +43,6 @@ fn create_tray_menu() -> SystemTray {
 fn main() {
   tauri::Builder::default()
     .plugin(tauri_plugin_positioner::init())
-    .plugin(tauri_plugin_store::Builder::default().build())
     .system_tray(create_tray_menu())
     .on_system_tray_event(|app, event| {
       tauri_plugin_positioner::on_tray_event(app, &event);
