@@ -21,7 +21,7 @@ fn set_dialog_open() {
 
 #[tauri::command]
 fn set_wallpaper(path: &str) {
-  wallpaper::set(path.to_string());
+  let _ = wallpaper::set(path.to_string());
 }
 
 #[tauri::command]
