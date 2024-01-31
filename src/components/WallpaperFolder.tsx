@@ -19,9 +19,17 @@ const tvWallpaperFolder = tv({
       "dark:text-neutral-400",
     ],
     imageContainer: "flex flex-row justify-start overflow-hidden w-full gap-3",
-    divider: "pt-2",
+    divider: "w-full pt-2",
   },
   variants: {
+    skeleton: {
+      true: {
+        title:
+          "w-28 h-3 py-0.5 bg-gray-300 dark:bg-gray-800 rounded-md animate-pulse",
+        showButton:
+          "w-24 h-2 py-0.5 bg-gray-300 dark:bg-gray-800 rounded-md animate-pulse",
+      },
+    },
     showAll: {
       true: {
         imageContainer: "flex-wrap",
@@ -41,6 +49,7 @@ const tvWallpaperFolder = tv({
 export type WallpaperFolderProps = {
   name: string;
   pictures: Picture[];
+  loading?: boolean;
   selected?: Picture;
   onImageClick?: (src: Picture) => void;
   onRemoveClick?: () => void;
@@ -82,52 +91,85 @@ export function WallpaperFolder(props: WallpaperFolderProps) {
   }
 
   return (
+    <>
+      <Show when={props.loading}>
+        <WallpaperFolderLoading showAll={showAll()} />
+      </Show>
+      <Show when={!props.loading}>
+        <section>
+          <div class={css().header()}>
+            <h3
+              class={css().title()}
+              onPointerOver={() => setShowRemove(true)}
+              onPointerOut={() => setShowRemove(false)}
+            >
+              {props.name}
+              <button
+                class={css().remove()}
+                aria-label={t("removeDir")}
+                onClick={props.onRemoveClick}
+              >
+                <IoClose />
+              </button>
+            </h3>
+            <Show when={props.pictures.length > 4}>
+              <button class={css().showButton()} onClick={onShow}>
+                <Show when={!showAll()}>
+                  {t("showMorePic", props.pictures.length)}
+                </Show>
+                <Show when={showAll()}>
+                  {t("showLessPic", props.pictures.length)}
+                </Show>
+              </button>
+            </Show>
+          </div>
+          <div class={css().divider()} />
+          <div class={css().imageContainer()}>
+            <Show when={!props.isPlaceholder}>
+              <For each={props.pictures}>
+                {(img) => (
+                  <WallpaperButton
+                    src={img.src}
+                    alt={t("picLabel", img.name)}
+                    selected={onSelected(img)}
+                    onImageClick={() => onImage(img)}
+                  />
+                )}
+              </For>
+            </Show>
+            <Show when={props.isPlaceholder}>
+              <For each={Array.from({ length: 5 })}>
+                {() => <WallpaperButton alt={t("noPicLabel")} />}
+              </For>
+            </Show>
+          </div>
+        </section>
+      </Show>
+    </>
+  );
+}
+
+function WallpaperFolderLoading(props: { showAll: boolean }) {
+  const css = createMemo(() =>
+    tvWallpaperFolder({
+      showAll: props.showAll,
+      showRemove: false,
+      skeleton: true,
+    }),
+  );
+
+  return (
     <section>
       <div class={css().header()}>
-        <h3
-          class={css().title()}
-          onPointerOver={() => setShowRemove(true)}
-          onPointerOut={() => setShowRemove(false)}
-        >
-          {props.name}
-          <button
-            class={css().remove()}
-            aria-label={t("removeDir")}
-            onClick={props.onRemoveClick}
-          >
-            <IoClose />
-          </button>
-        </h3>
-        <Show when={props.pictures.length > 4}>
-          <button class={css().showButton()} onClick={onShow}>
-            <Show when={!showAll()}>
-              {t("showMorePic", props.pictures.length)}
-            </Show>
-            <Show when={showAll()}>
-              {t("showLessPic", props.pictures.length)}
-            </Show>
-          </button>
-        </Show>
+        <h3 class={css().title()}></h3>
+        <div class={css().showButton()} />
       </div>
       <div class={css().divider()} />
+      <div class={css().divider()} />
       <div class={css().imageContainer()}>
-        <Show when={!props.isPlaceholder}>
-          <For each={props.pictures}>
-            {(img) => (
-              <WallpaperButton
-                src={img.src}
-                alt={t("picLabel", img.name)}
-                selected={onSelected(img)}
-                onImageClick={() => onImage(img)}
-              />
-            )}
-          </For>
-        </Show>
-        <Show when={props.isPlaceholder}>
-          <For each={Array.from({ length: 4 })}>
-            {() => <WallpaperButton alt={t("noPicLabel")} />}
-          </For>
-        </Show>
+        <For each={Array.from({ length: 5 })}>
+          {() => <WallpaperButton loading={true} />}
+        </For>
       </div>
     </section>
   );

@@ -1,13 +1,18 @@
-import { createMemo } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import { tv } from "tailwind-variants";
 import Placeholder from "../assets/placeholder.png";
 
 const tvWallpaperButton = tv({
   slots: {
-    root: "w-28 relative h-16",
+    root: "min-w-28 h-16 relative rounded-md",
     button: "w-28 h-16 bg-no-repeat bg-cover bg-center rounded-md",
   },
   variants: {
+    skeleton: {
+      true: {
+        root: "animate-pulse bg-gray-300 dark:bg-gray-800",
+      },
+    },
     selected: {
       true: {
         button: [
@@ -23,23 +28,28 @@ const tvWallpaperButton = tv({
 export type WallPaperButtonProps = {
   src?: string;
   alt?: string;
+  loading?: boolean;
   selected?: boolean;
   onImageClick?: () => void;
   onDeleteClick?: () => void;
 };
 
 export function WallpaperButton(props: WallPaperButtonProps) {
-  const css = createMemo(() => tvWallpaperButton({ selected: props.selected }));
+  const css = createMemo(() =>
+    tvWallpaperButton({ selected: props.selected, skeleton: props.loading }),
+  );
   return (
     <div class={css().root()}>
-      <button
-        class={css().button()}
-        onClick={props.onImageClick}
-        aria-label={props.alt}
-        style={{
-          "background-image": `url(${props.src ?? Placeholder})`,
-        }}
-      />
+      <Show when={!props.loading}>
+        <button
+          class={css().button()}
+          onClick={props.onImageClick}
+          aria-label={props.alt}
+          style={{
+            "background-image": `url(${props.src ?? Placeholder})`,
+          }}
+        />
+      </Show>
     </div>
   );
 }

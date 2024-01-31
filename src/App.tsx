@@ -9,14 +9,14 @@ import { createWallpapers } from "./controllers/wallpapers";
 function App() {
   const {
     pictures,
+    loading,
     customDir,
     customDirName,
     currentPicture,
     registerCustomDir,
     removeCustomDir,
     selectPicture,
-    loadCurrentPicture,
-    loadCustomDirPictures,
+    loadPictures,
     onShowMore,
   } = createWallpapers();
   const { t } = createLocale();
@@ -24,13 +24,11 @@ function App() {
   window.appWindow.listen("tauri://focus", () => {
     window.appWindow.isFocused().then((isFocused) => {
       if (isFocused) {
-        loadCustomDirPictures();
-        loadCurrentPicture();
+        loadPictures();
       }
     });
   });
-  loadCustomDirPictures();
-  loadCurrentPicture();
+  loadPictures();
 
   return (
     <div class="flex flex-col pt-3 pb-5 px-5 h-screen overflow-hidden">
@@ -45,6 +43,7 @@ function App() {
       <div class="pt-3" />
       <WallpaperFolder
         name={customDirName()}
+        loading={loading()}
         pictures={pictures()}
         selected={currentPicture()}
         onImageClick={selectPicture}

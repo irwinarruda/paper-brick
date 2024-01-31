@@ -7,9 +7,11 @@ import { extensions } from "../utils/extensions";
 import { getPicturesFromDir } from "../utils/getPicturesFromDir";
 import { StorageKeys, storage } from "../utils/storage";
 import { toPicture } from "../utils/toPicture";
+import { createLoading } from "./loading";
 import { createLocale } from "./locale";
 
 export function createWallpapers() {
+  const [loading, setLoading] = createLoading();
   const [customDir, setCustomDir] = createSignal<Picture | undefined>();
   const [pictures, setPictures] = createSignal<Picture[]>([]);
   const [currentPicture, setCurrentPicture] = createSignal<
@@ -38,7 +40,7 @@ export function createWallpapers() {
         recursive: false,
       });
       setCustomDir(dirPath ? toPicture(dirPath) : undefined);
-      setPictures(getPicturesFromDir(dir));
+      setPictures(await getPicturesFromDir(dir));
     } catch (err) {
       error(err);
     }
@@ -46,6 +48,7 @@ export function createWallpapers() {
 
   async function registerCustomDir() {
     try {
+      setLoading(true);
       await invoke(TauriHandlers.SetDialogOpen);
       const dirPath = await dialog.open({
         directory: true,
@@ -64,34 +67,37 @@ export function createWallpapers() {
       await setDirByPath();
     } catch (err) {
       error(err);
+    } finally {
+      setLoading(false);
     }
   }
 
   async function removeCustomDir() {
     try {
+      setLoading(true);
       storage.delete(StorageKeys.CustomDirPath);
       await setDirByPath();
     } catch (err) {
       error(err);
+    } finally {
+      setLoading(false);
     }
   }
 
-  async function loadCurrentPicture() {
+  async function loadPictures() {
     try {
-      const currPicture = await invoke<string | undefined>(
-        TauriHandlers.GetWallpaper,
-      ).then((p) => (p ? toPicture(p) : undefined));
-      setCurrentPicture(currPicture);
+      setLoading(true);
+      const [curr] = await Promise.all([
+        invoke<string | undefined>(TauriHandlers.GetWallpaper).then((p) =>
+          p ? toPicture(p) : undefined,
+        ),
+        setDirByPath(),
+      ]);
+      setCurrentPicture(curr);
     } catch (err) {
       error(err);
-    }
-  }
-
-  async function loadCustomDirPictures() {
-    try {
-      await setDirByPath();
-    } catch (err) {
-      error(err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -109,6 +115,7 @@ export function createWallpapers() {
   }
 
   return {
+    loading,
     pictures,
     customDir,
     customDirName,
@@ -116,8 +123,7 @@ export function createWallpapers() {
     selectPicture,
     registerCustomDir,
     removeCustomDir,
-    loadCurrentPicture,
-    loadCustomDirPictures,
+    loadPictures,
     onShowMore,
   };
 }
