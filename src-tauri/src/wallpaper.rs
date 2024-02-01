@@ -81,6 +81,7 @@ fn set_plist_wallpaper(path: String) -> Result<(), std::io::Error> {
     .arg("-o")
     .arg(&application_plist)
     .output()?;
+  fs::remove_file(&application_xml)?;
   Command::new("killall").arg("WallpaperAgent").output()?;
   return Ok(());
 }

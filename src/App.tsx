@@ -24,7 +24,7 @@ function App() {
   window.appWindow.listen("tauri://focus", () => {
     window.appWindow.isFocused().then((isFocused) => {
       if (isFocused) {
-        loadPictures();
+        loadPictures(true);
       }
     });
   });

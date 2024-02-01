@@ -84,9 +84,9 @@ export function createWallpapers() {
     }
   }
 
-  async function loadPictures() {
+  async function loadPictures(prevendLoading = false) {
     try {
-      setLoading(true);
+      if (!prevendLoading) setLoading(true);
       const [curr] = await Promise.all([
         invoke<string | undefined>(TauriHandlers.GetWallpaper).then((p) =>
           p ? toPicture(p) : undefined,
@@ -97,7 +97,7 @@ export function createWallpapers() {
     } catch (err) {
       error(err);
     } finally {
-      setLoading(false);
+      if (!prevendLoading) setLoading(false);
     }
   }
 
