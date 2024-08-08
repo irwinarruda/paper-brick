@@ -1,4 +1,3 @@
-import { window } from "@tauri-apps/api";
 import { CgMathPlus } from "solid-icons/cg";
 import Logo from "./assets/logo.png";
 import { Button } from "./components/Button";
@@ -16,19 +15,9 @@ function App() {
     registerCustomDir,
     removeCustomDir,
     selectPicture,
-    loadPictures,
     onShowMore,
   } = createWallpapers();
   const { t } = createLocale();
-
-  window.appWindow.listen("tauri://focus", () => {
-    window.appWindow.isFocused().then((isFocused) => {
-      if (isFocused) {
-        loadPictures(true);
-      }
-    });
-  });
-  loadPictures();
 
   return (
     <div class="flex flex-col pt-3 pb-5 px-5 h-screen overflow-hidden">

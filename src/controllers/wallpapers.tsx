@@ -1,4 +1,5 @@
 import { dialog, fs, invoke, path, window } from "@tauri-apps/api";
+import { PhysicalPosition } from "@tauri-apps/api/window";
 import { createMemo, createSignal } from "solid-js";
 import { Picture } from "../entities/Picutre";
 import { TauriHandlers } from "../entities/TauriHandlers";
@@ -17,6 +18,7 @@ export function createWallpapers() {
   const [currentPicture, setCurrentPicture] = createSignal<
     Picture | undefined
   >();
+  const rowCount = createMemo(() => Math.ceil(pictures().length / 4));
   const { t } = createLocale();
 
   const customDirName = createMemo(
@@ -101,18 +103,44 @@ export function createWallpapers() {
     }
   }
 
+  let initialPosition: number;
   async function onShowMore(isShowingMore: boolean) {
+    const rowHeight = 64 + 12;
+    const addedRowHeights = rowHeight * (rowCount() - 1);
     if (isShowingMore) {
       window.appWindow.setSize(
-        new window.LogicalSize(
-          580,
-          165 + (64 + 12) * (Math.ceil(pictures().length / 4) - 1),
-        ),
+        new window.LogicalSize(580, 165 + addedRowHeights),
       );
+      let currentPosition = await window.appWindow.outerPosition();
+      let offsetPosition = new PhysicalPosition(
+        currentPosition.x,
+        (initialPosition ?? currentPosition.y) - addedRowHeights,
+      );
+      window.appWindow.setPosition(offsetPosition);
       return;
     }
     window.appWindow.setSize(new window.LogicalSize(580, 165));
+    let currentPosition = await window.appWindow.outerPosition();
+    let offsetPosition = new PhysicalPosition(
+      currentPosition.x,
+      initialPosition ?? currentPosition.y,
+    );
+    window.appWindow.setPosition(offsetPosition);
   }
+
+  window.appWindow.listen<number>("window_tray_position", ({ payload }) => {
+    initialPosition = payload;
+  });
+
+  window.appWindow.listen("tauri://focus", () => {
+    window.appWindow.isFocused().then((isFocused) => {
+      if (isFocused) {
+        loadPictures(true);
+      }
+    });
+  });
+
+  loadPictures();
 
   return {
     loading,

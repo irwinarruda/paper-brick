@@ -4,11 +4,10 @@
 pub mod wallpaper;
 
 use tauri::{
-  ActivationPolicy, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
+  CustomMenuItem, Manager, PhysicalPosition, SystemTray, SystemTrayEvent, SystemTrayMenu, Window,
   WindowEvent,
 };
 use tauri_plugin_positioner::{self, Position, WindowExt};
-use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
 
 static mut IS_DIALOG_OPEN: bool = false;
 
@@ -33,6 +32,33 @@ fn get_wallpaper() -> Option<String> {
   return None;
 }
 
+fn move_window_initial(window: &Window) {
+  #[cfg(target_os = "macos")]
+  window.move_window(Position::TopRight).unwrap();
+  #[cfg(target_os = "windows")]
+  window.move_window(Position::BottomRight).unwrap();
+}
+
+fn move_window_tray(window: &Window) {
+  #[cfg(target_os = "macos")]
+  window.move_window(Position::TrayCenter).unwrap();
+  #[cfg(target_os = "windows")]
+  {
+    window.move_window(Position::TrayCenter).unwrap();
+    let current_position = window.outer_position().unwrap();
+    let offset_position = PhysicalPosition {
+      x: current_position.x - 70,
+      y: current_position.y,
+    };
+    window
+      .set_position(tauri::Position::Physical(offset_position))
+      .unwrap();
+    window
+      .emit("window_tray_position", offset_position.y)
+      .unwrap();
+  }
+}
+
 fn create_tray_menu() -> SystemTray {
   let quit = CustomMenuItem::new("quit".to_string(), "Quit").accelerator("Cmd+Q");
   let tray_menu = SystemTrayMenu::new().add_item(quit);
@@ -46,12 +72,10 @@ fn main() {
     .system_tray(create_tray_menu())
     .on_system_tray_event(|app, event| {
       tauri_plugin_positioner::on_tray_event(app, &event);
-      let window = app.get_window("main").unwrap();
-      window.move_window(Position::TrayCenter).unwrap();
       match event {
         SystemTrayEvent::LeftClick { .. } => {
           let window = app.get_window("main").unwrap();
-          let _ = window.move_window(Position::TrayCenter);
+          move_window_tray(&window);
           if window.is_visible().unwrap() {
             window.hide().unwrap();
           } else {
@@ -92,17 +116,22 @@ fn main() {
       _ => (),
     })
     .setup(|app| {
-      app.set_activation_policy(ActivationPolicy::Accessory);
       let window = app.get_window("main").unwrap();
-      window.move_window(Position::TopRight).unwrap();
+      window_shadows::set_shadow(&window, true).expect("Unsupported platform!");
+      move_window_initial(&window);
       #[cfg(target_os = "macos")]
-      apply_vibrancy(
-        &window,
-        NSVisualEffectMaterial::HudWindow,
-        Some(NSVisualEffectState::Active),
-        Some(7.0),
-      )
-      .expect("Unsupported platform! Only macOS is supported!");
+      {
+        app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+        window_vibrancy::apply_vibrancy(
+          &window,
+          window_vibrancy::NSVisualEffectMaterial::HudWindow,
+          Some(window_vibrancy::NSVisualEffectState::Active),
+          Some(7.0),
+        )
+        .expect("Unsupported platform!");
+      }
+      #[cfg(target_os = "windows")]
+      window_vibrancy::apply_acrylic(&window, None).expect("Unsupported platform!");
       return Ok(());
     })
     .invoke_handler(tauri::generate_handler![

@@ -2,16 +2,9 @@ use regex::Regex;
 use std::{borrow::Cow, fs, process::Command};
 
 pub fn get() -> Option<String> {
-  let result = Command::new("osascript")
-    .arg("-e")
-    .arg("tell application \"Finder\" to get POSIX path of (get desktop picture as alias)")
-    .output();
-  if let Ok(output) = result {
-    let result = String::from_utf8(output.stdout);
-    if let Ok(mut path) = result {
-      path.pop();
-      return Some(path);
-    }
+  let result = wallpaper::get();
+  if let Ok(item) = result {
+    return Some(item);
   }
   return None;
 }
@@ -100,9 +93,20 @@ fn set_wallpaper_oascript(path: String) -> Result<(), std::io::Error> {
 }
 
 pub fn set(path: String) -> Result<(), std::io::Error> {
-  let plist = set_plist_wallpaper(path.clone());
-  if plist.is_err() {
-    set_wallpaper_oascript(path.clone())?;
+  #[cfg(target_os = "macos")]
+  {
+    let plist = set_plist_wallpaper(path.clone());
+    if !plist.is_err() {
+      return Ok(());
+    }
   }
+
+  if let Err(err) = wallpaper::set_from_path(path.as_str()) {
+    return Err(std::io::Error::new(
+      std::io::ErrorKind::Other,
+      err.to_string(),
+    ));
+  }
+
   return Ok(());
 }
