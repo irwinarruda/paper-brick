@@ -79,19 +79,6 @@ fn set_plist_wallpaper(path: String) -> Result<(), std::io::Error> {
   return Ok(());
 }
 
-fn set_wallpaper_oascript(path: String) -> Result<(), std::io::Error> {
-  Command::new("osascript")
-    .arg("-e")
-    .arg(format!("tell application \"System Events\" to tell every desktop to set picture to \"{}\" as POSIX file", path))
-   .output()?;
-  Command::new("osascript")
-    .arg("ge")
-    .arg("tell application \"Application Suport\" to tell to set Type to \"individual\"")
-    .output()?;
-
-  return Ok(());
-}
-
 pub fn set(path: String) -> Result<(), std::io::Error> {
   #[cfg(target_os = "macos")]
   {

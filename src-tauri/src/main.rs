@@ -4,8 +4,7 @@
 pub mod wallpaper;
 
 use tauri::{
-  CustomMenuItem, Manager, PhysicalPosition, SystemTray, SystemTrayEvent, SystemTrayMenu, Window,
-  WindowEvent,
+  CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, Window, WindowEvent,
 };
 use tauri_plugin_positioner::{self, Position, WindowExt};
 
@@ -46,7 +45,7 @@ fn move_window_tray(window: &Window) {
   {
     window.move_window(Position::TrayCenter).unwrap();
     let current_position = window.outer_position().unwrap();
-    let offset_position = PhysicalPosition {
+    let offset_position = tauri::PhysicalPosition {
       x: current_position.x - 70,
       y: current_position.y,
     };
