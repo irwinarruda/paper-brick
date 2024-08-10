@@ -1,4 +1,4 @@
-import { tauri } from "@tauri-apps/api";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { Picture } from "../entities/Picutre";
 
 export function toPicture(path: string): Picture {
@@ -6,6 +6,6 @@ export function toPicture(path: string): Picture {
   return {
     path: path,
     name: splitPath[splitPath.length - 1],
-    src: tauri.convertFileSrc(path),
+    src: convertFileSrc(path),
   };
 }

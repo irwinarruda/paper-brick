@@ -9,17 +9,7 @@ pub fn get() -> Option<String> {
   return None;
 }
 
-fn get_application_support_path() -> Option<String> {
-  let home_opt = tauri::api::path::home_dir();
-  if home_opt.is_none() {
-    return None;
-  }
-  let home = home_opt?;
-  let home_path_opt = home.to_str();
-  if home_path_opt.is_none() {
-    return None;
-  }
-  let home_path = home_path_opt?;
+fn get_application_support_path(home_path: String) -> Option<String> {
   let application_support_path = format!(
     "{}/Library/Application Support/com.apple.wallpaper/Store",
     home_path
@@ -46,8 +36,8 @@ fn replace_file(file: String, path: String) -> Result<String, std::io::Error> {
   ));
 }
 
-fn set_plist_wallpaper(path: String) -> Result<(), std::io::Error> {
-  let application_support_opt = get_application_support_path();
+fn set_plist_wallpaper(path: String, home_path: String) -> Result<(), std::io::Error> {
+  let application_support_opt = get_application_support_path(home_path.clone());
   if application_support_opt.is_none() {
     return Err(std::io::Error::new(
       std::io::ErrorKind::Other,
@@ -79,10 +69,10 @@ fn set_plist_wallpaper(path: String) -> Result<(), std::io::Error> {
   return Ok(());
 }
 
-pub fn set(path: String) -> Result<(), std::io::Error> {
+pub fn set(path: String, home_path: String) -> Result<(), std::io::Error> {
   #[cfg(target_os = "macos")]
   {
-    let plist = set_plist_wallpaper(path.clone());
+    let plist = set_plist_wallpaper(path.clone(), home_path.clone());
     if !plist.is_err() {
       return Ok(());
     }
