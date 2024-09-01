@@ -28,7 +28,7 @@ export function createWallpapers() {
   const { t } = createLocale();
 
   const customDirName = createMemo(
-    () => customDir()?.name || t("mainPicTitle")!
+    () => customDir()?.name || t("mainPicTitle")!,
   );
 
   async function selectPicture(picture: Picture) {
@@ -50,7 +50,7 @@ export function createWallpapers() {
       const dir = await fs.readDir(normalizePath(dirPath ?? defaultPath));
       setCustomDir(dirPath ? toPicture(dirPath) : undefined);
       setPictures(
-        await getPicturesFromDir(dir, normalizePath(dirPath ?? defaultPath))
+        await getPicturesFromDir(dir, normalizePath(dirPath ?? defaultPath)),
       );
     } catch (err) {
       error(err);
@@ -112,29 +112,30 @@ export function createWallpapers() {
     }
   }
 
-  let initialPosition: number;
+  let initialPosition: number | undefined;
   let isShowingMore = false;
   async function onShowMore(showingMore: boolean) {
     isShowingMore = showingMore;
     const rowHeight = 64 + 12;
     const addedRowHeights = rowHeight * (rowCount() - 1);
+    const currentPosition = await window.outerPosition();
     if (showingMore) {
       window.setSize(new dpi.LogicalSize(580, 165 + addedRowHeights));
-      let currentPosition = await window.outerPosition();
-      let offsetPosition = new dpi.PhysicalPosition(
-        currentPosition.x,
-        (initialPosition ?? currentPosition.y) - addedRowHeights
+      window.setPosition(
+        new dpi.PhysicalPosition(
+          currentPosition.x,
+          (initialPosition ?? currentPosition.y) - addedRowHeights,
+        ),
       );
-      window.setPosition(offsetPosition);
       return;
     }
     window.setSize(new dpi.LogicalSize(580, 165));
-    let currentPosition = await window.outerPosition();
-    let offsetPosition = new dpi.PhysicalPosition(
-      currentPosition.x,
-      initialPosition ?? currentPosition.y
+    window.setPosition(
+      new dpi.PhysicalPosition(
+        currentPosition.x,
+        initialPosition ?? currentPosition.y,
+      ),
     );
-    window.setPosition(offsetPosition);
   }
 
   window.listen<number>("window_tray_position", ({ payload }) => {

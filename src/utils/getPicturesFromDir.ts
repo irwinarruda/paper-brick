@@ -30,20 +30,12 @@ export async function getPicturesFromDir(dir: fs.DirEntry[], basePath: string) {
               maxSizeMB: 0.1,
               maxWidthOrHeight: 1920,
               useWebWorker: true,
-            })
+            }),
           );
           memoFiles.set(item.name, src);
           picture.src = src;
           return picture;
-        })()
-      );
-    } else if (item.isDirectory) {
-      const childBasePath = await path.join(basePath, item.name);
-      const childDir = await fs.readDir(childBasePath);
-      images.push(
-        ...(await getPicturesFromDir(childDir, childBasePath)).map((i) =>
-          Promise.resolve(i)
-        )
+        })(),
       );
     }
   }

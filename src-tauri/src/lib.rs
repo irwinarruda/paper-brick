@@ -35,7 +35,7 @@ fn get_wallpaper() -> Option<String> {
 
 fn move_window_initial(window: &WebviewWindow) {
   #[cfg(target_os = "macos")]
-  window.move_window(Position::TopRight).unwrap();
+  window.move_window(Position::TopCenter).unwrap();
   #[cfg(target_os = "windows")]
   window.move_window(Position::BottomRight).unwrap();
 }
@@ -76,13 +76,13 @@ fn build_tray_app(app: &mut App) {
       let app = tray.app_handle();
       let window = app.get_webview_window("main").unwrap();
       tauri_plugin_positioner::on_tray_event(app, &event);
+      move_window_tray(&window);
       if let TrayIconEvent::Click {
         button: MouseButton::Left,
         button_state: MouseButtonState::Up,
         ..
       } = event
       {
-        move_window_tray(&window);
         if window.is_visible().unwrap() {
           window.hide().unwrap();
         } else {
@@ -134,8 +134,8 @@ pub fn run() {
       return Ok(());
     })
     .on_window_event(|window, event| match event {
-      WindowEvent::Focused(_focused) => {
-        if !_focused {
+      WindowEvent::Focused(focused) => {
+        if !focused {
           unsafe {
             if IS_DIALOG_OPEN {
               IS_DIALOG_OPEN = false;
