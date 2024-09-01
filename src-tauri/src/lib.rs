@@ -3,7 +3,7 @@ pub mod wallpaper;
 use tauri::{
   menu::{MenuBuilder, MenuItemBuilder},
   tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-  App, Manager, WebviewWindow, WindowEvent,
+  App, AppHandle, Emitter, Manager, WebviewWindow, WindowEvent,
 };
 use tauri_plugin_positioner::{self, Position, WindowExt};
 
@@ -17,15 +17,11 @@ fn set_dialog_open() {
 }
 
 #[tauri::command]
-fn set_wallpaper(app_handle: tauri::AppHandle, path: &str) {
-  let home = app_handle.path().home_dir();
-  if !home.is_ok() {
-    return;
-  }
-  let _ = wallpaper::set(
-    path.to_string(),
-    home.unwrap().to_str().unwrap().to_string(),
-  );
+fn set_wallpaper(app: AppHandle, path: &str) {
+  let home_res = app.path().home_dir();
+  let home_buff = home_res.unwrap();
+  let home = home_buff.to_str().unwrap().to_string();
+  let _ = wallpaper::set(path.to_string(), home);
 }
 
 #[tauri::command]
@@ -115,6 +111,9 @@ pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_positioner::init())
+    .plugin(tauri_plugin_dialog::init())
+    .plugin(tauri_plugin_fs::init())
+    .plugin(tauri_plugin_os::init())
     .setup(|app| {
       build_tray_app(app);
       let window = app.get_webview_window("main").unwrap();

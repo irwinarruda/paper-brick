@@ -1,5 +1,5 @@
 import * as i18n from "@solid-primitives/i18n";
-import { locale as tauriLocale } from "@tauri-apps/plugin-os";
+import * as os from "@tauri-apps/plugin-os";
 import {
   JSX,
   Show,
@@ -25,7 +25,7 @@ export function useLocale() {
   const t = i18n.translator(dict);
 
   createEffect(() => {
-    tauriLocale().then((l) => {
+    os.locale().then((l) => {
       if (l) setLocale(l as Locale);
     });
   });
