@@ -1,4 +1,5 @@
-import { fs } from "@tauri-apps/api";
+import * as fs from "@tauri-apps/plugin-fs";
+import * as path from "@tauri-apps/api/path";
 import imageCompression from "browser-image-compression";
 import { Picture } from "../entities/Picutre";
 import { extensions } from "../utils/extensions";
@@ -6,22 +7,22 @@ import { getFileFromPath } from "./getFileFromPath";
 
 const memoFiles = new Map<string, string>();
 
-export async function getPicturesFromDir(dir: fs.FileEntry[]) {
+export async function getPicturesFromDir(dir: fs.DirEntry[], basePath: string) {
   let images = [] as Promise<Picture>[];
   for (let item of dir) {
-    if (!item.children && extensions.some((i) => item.path.endsWith(i))) {
+    if (!item.isDirectory && extensions.some((i) => item.name.endsWith(i))) {
       images.push(
         (async function () {
           const picture: Picture = {
             name: item.name || "",
-            path: item.path,
+            path: await path.join(basePath, item.name),
             src: "",
           };
-          if (memoFiles.has(item.path)) {
-            picture.src = memoFiles.get(item.path)!;
+          if (memoFiles.has(item.name)) {
+            picture.src = memoFiles.get(item.name)!;
             return picture;
           }
-          const file = await getFileFromPath(item.path, {
+          const file = await getFileFromPath(picture.path, {
             fileName: "toCompress",
           });
           const src = URL.createObjectURL(
@@ -31,7 +32,7 @@ export async function getPicturesFromDir(dir: fs.FileEntry[]) {
               useWebWorker: true,
             }),
           );
-          memoFiles.set(item.path, src);
+          memoFiles.set(item.name, src);
           picture.src = src;
           return picture;
         })(),

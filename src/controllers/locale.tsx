@@ -1,5 +1,5 @@
 import * as i18n from "@solid-primitives/i18n";
-import { os } from "@tauri-apps/api";
+import * as os from "@tauri-apps/plugin-os";
 import {
   JSX,
   Show,

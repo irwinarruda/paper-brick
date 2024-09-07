@@ -1,57 +1,43 @@
 {
-  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/schema.json",
+  "$schema": "https://github.com/tauri-apps/tauri/releases/download/tauri-build-v2.0.0-beta.13/schema.json",
+  "productName": "Paper Brick",
+  "version": "0.0.0",
+  "identifier": "com.irwinarruda.paper-brick",
   "build": {
     "beforeDevCommand": "bun run dev",
     "beforeBuildCommand": "bun run build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
-  "package": {
-    "productName": "Paper Brick",
-    "version": "0.0.0"
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "createUpdaterArtifacts": "v1Compatible"
   },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "os": {
-        "all": true
-      },
-      "dialog": {
-        "open": true
-      },
-      "fs": {
-        "all": true,
-        "scope": ["$HOME/**"]
-      },
-      "protocol": {
-        "asset": true,
-        "assetScope": ["$HOME/**"]
-      },
-      "shell": {
-        "all": false,
-        "open": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "identifier": "com.irwinarruda.paper-brick",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ]
-    },
+  "plugins": {},
+  "app": {
+    "macOSPrivateApi": true,
     "security": {
-      "csp": null
+      "csp": "http://asset.localhost",
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$HOME/**"
+        ]
+      }
     },
     "windows": [
       {
         "fullscreen": false,
         "resizable": false,
-        "title": "paper-brick",
+        "title": "main",
         "width": 580,
         "height": 165,
         "visible": false,
@@ -62,12 +48,6 @@
         "skipTaskbar": true,
         "alwaysOnTop": true
       }
-    ],
-    "macOSPrivateApi": true,
-    "systemTray": {
-      "iconPath": "tray/icon-tray.png",
-      "iconAsTemplate": true,
-      "menuOnLeftClick": false
-    }
+    ]
   }
 }

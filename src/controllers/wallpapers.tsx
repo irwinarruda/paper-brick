@@ -1,5 +1,9 @@
-import { dialog, fs, invoke, path, window } from "@tauri-apps/api";
-import { PhysicalPosition } from "@tauri-apps/api/window";
+import * as path from "@tauri-apps/api/path";
+import * as dpi from "@tauri-apps/api/dpi";
+import * as core from "@tauri-apps/api/core";
+import * as webviewWindow from "@tauri-apps/api/webviewWindow";
+import * as fs from "@tauri-apps/plugin-fs";
+import * as dialog from "@tauri-apps/plugin-dialog";
 import { createMemo, createSignal } from "solid-js";
 import { Picture } from "../entities/Picutre";
 import { TauriHandlers } from "../entities/TauriHandlers";
@@ -10,8 +14,10 @@ import { StorageKeys, storage } from "../utils/storage";
 import { toPicture } from "../utils/toPicture";
 import { createLoading } from "./loading";
 import { createLocale } from "./locale";
+import { normalizePath, unnormalizePath } from "../utils/normalizePath";
 
 export function createWallpapers() {
+  const window = webviewWindow.getCurrentWebviewWindow();
   const [loading, setLoading] = createLoading();
   const [customDir, setCustomDir] = createSignal<Picture | undefined>();
   const [pictures, setPictures] = createSignal<Picture[]>([]);
@@ -28,7 +34,9 @@ export function createWallpapers() {
   async function selectPicture(picture: Picture) {
     try {
       setCurrentPicture(picture);
-      await invoke(TauriHandlers.SetWallpaper, { path: picture.path });
+      await core.invoke(TauriHandlers.SetWallpaper, {
+        path: unnormalizePath(picture.path),
+      });
     } catch (err) {
       error(err);
     }
@@ -36,13 +44,14 @@ export function createWallpapers() {
 
   async function setDirByPath() {
     try {
+      const home = await path.homeDir();
+      const defaultPath = await path.join(home, "Pictures");
       const dirPath = storage.get<string>(StorageKeys.CustomDirPath);
-      const dir = await fs.readDir(dirPath ?? "Pictures", {
-        dir: dirPath ? undefined : fs.BaseDirectory.Home,
-        recursive: false,
-      });
+      const dir = await fs.readDir(normalizePath(dirPath ?? defaultPath));
       setCustomDir(dirPath ? toPicture(dirPath) : undefined);
-      setPictures(await getPicturesFromDir(dir));
+      setPictures(
+        await getPicturesFromDir(dir, normalizePath(dirPath ?? defaultPath)),
+      );
     } catch (err) {
       error(err);
     }
@@ -51,7 +60,7 @@ export function createWallpapers() {
   async function registerCustomDir() {
     try {
       setLoading(true);
-      await invoke(TauriHandlers.SetDialogOpen);
+      await core.invoke(TauriHandlers.SetDialogOpen);
       const dirPath = await dialog.open({
         directory: true,
         multiple: false,
@@ -90,9 +99,9 @@ export function createWallpapers() {
     try {
       if (!prevendLoading) setLoading(true);
       const [curr] = await Promise.all([
-        invoke<string | undefined>(TauriHandlers.GetWallpaper).then((p) =>
-          p ? toPicture(p) : undefined,
-        ),
+        core
+          .invoke<string | undefined>(TauriHandlers.GetWallpaper)
+          .then((p) => (p ? toPicture(normalizePath(p)) : undefined)),
         setDirByPath(),
       ]);
       setCurrentPicture(curr);
@@ -103,37 +112,38 @@ export function createWallpapers() {
     }
   }
 
-  let initialPosition: number;
-  async function onShowMore(isShowingMore: boolean) {
+  let initialPosition: number | undefined;
+  let isShowingMore = false;
+  async function onShowMore(showingMore: boolean) {
+    isShowingMore = showingMore;
     const rowHeight = 64 + 12;
     const addedRowHeights = rowHeight * (rowCount() - 1);
-    if (isShowingMore) {
-      window.appWindow.setSize(
-        new window.LogicalSize(580, 165 + addedRowHeights),
+    const currentPosition = await window.outerPosition();
+    if (showingMore) {
+      window.setSize(new dpi.LogicalSize(580, 165 + addedRowHeights));
+      window.setPosition(
+        new dpi.PhysicalPosition(
+          currentPosition.x,
+          (initialPosition ?? currentPosition.y) - addedRowHeights,
+        ),
       );
-      let currentPosition = await window.appWindow.outerPosition();
-      let offsetPosition = new PhysicalPosition(
-        currentPosition.x,
-        (initialPosition ?? currentPosition.y) - addedRowHeights,
-      );
-      window.appWindow.setPosition(offsetPosition);
       return;
     }
-    window.appWindow.setSize(new window.LogicalSize(580, 165));
-    let currentPosition = await window.appWindow.outerPosition();
-    let offsetPosition = new PhysicalPosition(
-      currentPosition.x,
-      initialPosition ?? currentPosition.y,
+    window.setSize(new dpi.LogicalSize(580, 165));
+    window.setPosition(
+      new dpi.PhysicalPosition(
+        currentPosition.x,
+        initialPosition ?? currentPosition.y,
+      ),
     );
-    window.appWindow.setPosition(offsetPosition);
   }
 
-  window.appWindow.listen<number>("window_tray_position", ({ payload }) => {
-    initialPosition = payload;
+  window.listen<number>("window_tray_position", ({ payload }) => {
+    if (!isShowingMore) initialPosition = payload;
   });
 
-  window.appWindow.listen("tauri://focus", () => {
-    window.appWindow.isFocused().then((isFocused) => {
+  window.listen("tauri://focus", () => {
+    window.isFocused().then((isFocused) => {
       if (isFocused) {
         loadPictures(true);
       }
